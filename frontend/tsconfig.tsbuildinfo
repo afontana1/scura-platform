@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/api/client.ts","./src/components/EditableTable.tsx","./src/components/ImportWizard.tsx","./src/components/ResultDashboard.tsx","./src/components/ScenarioManagement.tsx","./src/components/ValidationPanel.tsx","./src/data/defaultDataset.ts","./src/types/scura.ts"],"version":"5.6.3"}

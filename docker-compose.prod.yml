@@ -1,0 +1,82 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:?BACKEND_CORS_ORIGINS is required}
+      USE_AUTO_CREATE_TABLES: ${USE_AUTO_CREATE_TABLES:-false}
+      SIMULATION_EXECUTION_MODE: ${SIMULATION_EXECUTION_MODE:-queue}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SIMULATION_QUEUE_NAME: ${SIMULATION_QUEUE_NAME:-scura-simulations}
+      SIMULATION_ARTIFACT_DIR: ${SIMULATION_ARTIFACT_DIR:-/app/storage/simulation_runs}
+    ports:
+      - "8000:8000"
+    volumes:
+      - simulation_artifacts:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    command: rq worker -u ${REDIS_URL:-redis://redis:6379/0} ${SIMULATION_QUEUE_NAME:-scura-simulations}
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      USE_AUTO_CREATE_TABLES: ${USE_AUTO_CREATE_TABLES:-false}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SIMULATION_QUEUE_NAME: ${SIMULATION_QUEUE_NAME:-scura-simulations}
+      SIMULATION_ARTIFACT_DIR: ${SIMULATION_ARTIFACT_DIR:-/app/storage/simulation_runs}
+    volumes:
+      - simulation_artifacts:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  simulation_artifacts:

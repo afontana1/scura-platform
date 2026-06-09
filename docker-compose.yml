@@ -1,0 +1,85 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-scura}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-scura}
+      POSTGRES_DB: ${POSTGRES_DB:-scura}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-scura} -d ${POSTGRES_DB:-scura}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://scura:scura@db:5432/scura}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:5173}
+      USE_AUTO_CREATE_TABLES: ${USE_AUTO_CREATE_TABLES:-true}
+      SIMULATION_EXECUTION_MODE: ${SIMULATION_EXECUTION_MODE:-queue}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SIMULATION_QUEUE_NAME: ${SIMULATION_QUEUE_NAME:-scura-simulations}
+      SIMULATION_ARTIFACT_DIR: ${SIMULATION_ARTIFACT_DIR:-/app/storage/simulation_runs}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - simulation_artifacts:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+    command: rq worker -u ${REDIS_URL:-redis://redis:6379/0} ${SIMULATION_QUEUE_NAME:-scura-simulations}
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://scura:scura@db:5432/scura}
+      USE_AUTO_CREATE_TABLES: ${USE_AUTO_CREATE_TABLES:-true}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SIMULATION_QUEUE_NAME: ${SIMULATION_QUEUE_NAME:-scura-simulations}
+      SIMULATION_ARTIFACT_DIR: ${SIMULATION_ARTIFACT_DIR:-/app/storage/simulation_runs}
+    volumes:
+      - ./backend/app:/app/app
+      - simulation_artifacts:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  simulation_artifacts:
