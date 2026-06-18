@@ -58,6 +58,74 @@ Then open:
 - Frontend: http://localhost:5173
 - Backend docs: http://localhost:8000/docs
 
+## Restart the app
+
+Use these commands from the repo root when code changes do not seem to be picked up, especially after backend model or worker changes.
+
+### Restart only backend and worker
+
+This is usually enough after Python code changes that affect API routes, services, SQLAlchemy models, or RQ worker execution.
+
+```cmd
+docker compose restart backend worker
+```
+
+### Rebuild and restart backend and worker
+
+Use this when you changed Python dependencies, Dockerfiles, or want to force fresh backend and worker containers.
+
+```cmd
+docker compose up --build -d backend worker
+```
+
+### Rebuild and restart the full app
+
+Use this when you want to refresh frontend, backend, and worker together.
+
+```cmd
+docker compose up --build -d
+```
+
+### Full clean restart
+
+Use this when the stack is in a bad state and you want to recreate containers from scratch. This keeps your named volumes unless you add `-v`.
+
+```cmd
+docker compose down
+docker compose up --build -d
+```
+
+### Full clean restart with database reset
+
+Use this only if you intentionally want to delete local PostgreSQL data and start over from an empty database.
+
+```cmd
+docker compose down -v
+docker compose up --build -d
+```
+
+### Watch logs after restart
+
+These are the most useful services to watch when debugging simulation jobs.
+
+```cmd
+docker compose logs -f backend worker frontend
+```
+
+### Example: fix worker not picking up a backend model change
+
+If the worker throws a SQLAlchemy mapper error or keeps running old backend code:
+
+```cmd
+docker compose restart backend worker
+```
+
+If that is not enough:
+
+```cmd
+docker compose up --build -d backend worker
+```
+
 ## Run from PowerShell
 
 ```powershell
@@ -67,6 +135,15 @@ Copy-Item .env.example .env
 docker compose down -v
 docker builder prune -f
 docker compose up --build
+```
+
+PowerShell restart examples:
+
+```powershell
+docker compose restart backend worker
+docker compose up --build -d backend worker
+docker compose up --build -d
+docker compose logs -f backend worker frontend
 ```
 
 ## Typical workflow

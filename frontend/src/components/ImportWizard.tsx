@@ -8,9 +8,10 @@ type ImportWizardProps = {
   onDatasetImported: (dataset: ScuraDataset, record: ScenarioDatasetRecord) => void;
   onError: (message: string) => void;
   onMessage: (message: string) => void;
+  compact?: boolean;
 };
 
-export function ImportWizard({ scenarioId, onDatasetImported, onError, onMessage }: ImportWizardProps) {
+export function ImportWizard({ scenarioId, onDatasetImported, onError, onMessage, compact = false }: ImportWizardProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -52,7 +53,7 @@ export function ImportWizard({ scenarioId, onDatasetImported, onError, onMessage
   }
 
   return (
-    <section className="card import-wizard">
+    <section className={`card import-wizard ${compact ? 'compact-import-wizard' : ''}`}>
       <div className="table-heading">
         <div>
           <h2>Spreadsheet import</h2>
@@ -67,7 +68,7 @@ export function ImportWizard({ scenarioId, onDatasetImported, onError, onMessage
       </div>
 
       {preview && (
-        <div className="grid two import-preview">
+        <div className={`grid ${compact ? '' : 'two'} import-preview`}>
           <div>
             <h3>Parsed workbook</h3>
             <p><strong>{preview.filename}</strong></p>
@@ -76,10 +77,12 @@ export function ImportWizard({ scenarioId, onDatasetImported, onError, onMessage
                 <li key={sheet}>{sheet}: {count} rows</li>
               ))}
             </ul>
-            <details>
-              <summary>Canonical JSON preview</summary>
-              <pre>{JSON.stringify(preview.dataset_json, null, 2)}</pre>
-            </details>
+            {!compact && (
+              <details>
+                <summary>Canonical JSON preview</summary>
+                <pre>{JSON.stringify(preview.dataset_json, null, 2)}</pre>
+              </details>
+            )}
           </div>
           <div>
             <h3>Import validation</h3>

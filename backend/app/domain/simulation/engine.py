@@ -53,6 +53,8 @@ class SimulationEngine:
         risk_tracker: dict[str, list[dict[str, float]]] = defaultdict(list)
         critical_counts: dict[str, int] = defaultdict(int)
         activity_samples: dict[str, list[float]] = defaultdict(list)
+        activity_start_samples: dict[str, list[float]] = defaultdict(list)
+        activity_finish_samples: dict[str, list[float]] = defaultdict(list)
         milestone_samples: dict[str, list[float]] = defaultdict(list)
 
         for i in range(config.iterations):
@@ -96,6 +98,8 @@ class SimulationEngine:
                 critical_counts[activity_id] += 1
             for activity_id, duration in durations.items():
                 activity_samples[activity_id].append(duration)
+                activity_start_samples[activity_id].append(starts.get(activity_id, 0.0))
+                activity_finish_samples[activity_id].append(finishes.get(activity_id, 0.0))
 
             for milestone in dataset.schedule.milestones:
                 if milestone.activity_id in finishes:
@@ -145,6 +149,25 @@ class SimulationEngine:
             activity_id: critical_counts.get(activity_id, 0) / max(1, config.iterations)
             for activity_id in activities
         }
+        probabilistic_gantt = []
+        for activity_id, activity in activities.items():
+            start_samples = activity_start_samples.get(activity_id, [])
+            finish_samples = activity_finish_samples.get(activity_id, [])
+            duration_samples = activity_samples.get(activity_id, [])
+            probabilistic_gantt.append({
+                "activity_id": activity_id,
+                "name": activity.name,
+                "status": activity.status.value,
+                "p10_start": self._percentile(start_samples, 10),
+                "p50_start": self._percentile(start_samples, 50),
+                "p90_start": self._percentile(start_samples, 90),
+                "p10_finish": self._percentile(finish_samples, 10),
+                "p50_finish": self._percentile(finish_samples, 50),
+                "p90_finish": self._percentile(finish_samples, 90),
+                "mean_duration": mean(duration_samples) if duration_samples else 0.0,
+                "criticality": criticality_index.get(activity_id, 0.0),
+            })
+        probabilistic_gantt.sort(key=lambda row: (row["p50_start"], row["p50_finish"], row["activity_id"]))
 
         summary = {
             "engine_version": "9.0",
@@ -170,6 +193,7 @@ class SimulationEngine:
             "cost_histogram": self._histogram(costs_result),
             "duration_s_curve": self._s_curve(durations_result),
             "cost_s_curve": self._s_curve(costs_result),
+            "probabilistic_gantt": probabilistic_gantt,
             "cost_schedule_scatter": [
                 {"duration": r["project_duration_days"], "cost": r["total_cost"]}
                 for r in iterations[: min(len(iterations), 1000)]
