@@ -171,6 +171,7 @@ export function App() {
   const [comparison, setComparison] = useState<ScenarioComparisonRead | null>(null);
   const [selectedCompareIds, setSelectedCompareIds] = useState<string[]>([]);
   const [workspacePanel, setWorkspacePanel] = useState<'scenario' | 'data' | 'results'>('scenario');
+  const [navCollapsed, setNavCollapsed] = useState(false);
 
   const selectedProject = useMemo(() => projects.find((project) => project.id === selectedProjectId), [projects, selectedProjectId]);
   const selectedScenario = useMemo(() => scenarios.find((scenario) => scenario.id === selectedScenarioId), [scenarios, selectedScenarioId]);
@@ -387,61 +388,68 @@ export function App() {
       {message && <div className="notice success">{message}</div>}
       {error && <div className="notice error">{error}</div>}
 
-      <section className="dashboard-shell">
-        <aside className="control-rail">
+      <section className={`dashboard-shell ${navCollapsed ? 'nav-collapsed' : ''}`}>
+        <aside className={`control-rail ${navCollapsed ? 'collapsed' : ''}`}>
           <div className="rail-brand">
-            <p className="eyebrow">SCURA Platform</p>
-            <h1>Model Console</h1>
-            <p className="muted">One navigation column. One active workspace.</p>
+            <div className="rail-brand-row">
+              <div>
+                {!navCollapsed && <p className="eyebrow">SCURA Platform</p>}
+                <h1>{navCollapsed ? 'SC' : 'Model Console'}</h1>
+                {!navCollapsed && <p className="muted">One navigation column. One active workspace.</p>}
+              </div>
+              <button className="nav-toggle" type="button" onClick={() => setNavCollapsed((value) => !value)}>
+                {navCollapsed ? '>' : '<'}
+              </button>
+            </div>
           </div>
 
           <div className="card rail-card rail-compact-card status-card">
-            <div className="section-heading compact"><div><p className="eyebrow dark">Workspace</p><h2>Status</h2></div></div>
+            <div className="section-heading compact"><div>{!navCollapsed && <p className="eyebrow dark">Workspace</p>}<h2>{navCollapsed ? 'Status' : 'Status'}</h2></div></div>
             <div className="rail-status-list compact-status-list">
-              <div className="rail-status-item"><span>Project</span><strong>{selectedProject?.name ?? 'None'}</strong></div>
-              <div className="rail-status-item"><span>Scenario</span><strong>{selectedScenario?.name ?? 'None'}</strong></div>
-              <div className="rail-status-item"><span>Dataset</span><strong>{datasetRecord ? (datasetRecord.is_valid ? 'Valid' : 'Review') : 'None'}</strong></div>
+              <div className="rail-status-item"><span>{navCollapsed ? 'Proj' : 'Project'}</span><strong>{navCollapsed ? (selectedProject ? 'Set' : 'None') : (selectedProject?.name ?? 'None')}</strong></div>
+              <div className="rail-status-item"><span>{navCollapsed ? 'Scen' : 'Scenario'}</span><strong>{navCollapsed ? (selectedScenario ? 'Set' : 'None') : (selectedScenario?.name ?? 'None')}</strong></div>
+              <div className="rail-status-item"><span>{navCollapsed ? 'Data' : 'Dataset'}</span><strong>{datasetRecord ? (datasetRecord.is_valid ? 'Valid' : 'Review') : 'None'}</strong></div>
               <div className="rail-status-item"><span>Run</span><strong>{simulationResult?.run.status ?? 'None'}</strong></div>
             </div>
           </div>
 
           <div className="card rail-card rail-compact-card">
-            <div className="section-heading compact"><div><p className="eyebrow dark">Panels</p><h2>Navigation</h2></div></div>
+            <div className="section-heading compact"><div>{!navCollapsed && <p className="eyebrow dark">Panels</p>}<h2>Navigation</h2></div></div>
             <div className="rail-panel-nav">
-              <button className={workspacePanel === 'scenario' ? 'active' : ''} onClick={() => setWorkspacePanel('scenario')}>Scenario Mgmt</button>
-              <button className={workspacePanel === 'data' ? 'active' : ''} onClick={() => setWorkspacePanel('data')}>Data Studio</button>
-              <button className={workspacePanel === 'results' ? 'active' : ''} onClick={() => setWorkspacePanel('results')}>Results</button>
+              <button className={workspacePanel === 'scenario' ? 'active' : ''} onClick={() => setWorkspacePanel('scenario')}>{navCollapsed ? 'S' : 'Scenario Mgmt'}</button>
+              <button className={workspacePanel === 'data' ? 'active' : ''} onClick={() => setWorkspacePanel('data')}>{navCollapsed ? 'D' : 'Data Studio'}</button>
+              <button className={workspacePanel === 'results' ? 'active' : ''} onClick={() => setWorkspacePanel('results')}>{navCollapsed ? 'R' : 'Results'}</button>
             </div>
           </div>
 
           <div className="card rail-card rail-compact-card">
-            <div className="section-heading compact"><div><p className="eyebrow dark">Context</p><h2>Selection</h2></div></div>
+            <div className="section-heading compact"><div>{!navCollapsed && <p className="eyebrow dark">Context</p>}<h2>Selection</h2></div></div>
             <div className="rail-stack">
-              <div className="rail-field"><label>Project</label><select value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)}><option value="">Select a project</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></div>
-              <div className="rail-field"><label>Scenario</label><select value={selectedScenarioId} onChange={(event) => setSelectedScenarioId(event.target.value)}><option value="">Select a scenario</option>{scenarios.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.name}</option>)}</select></div>
-              <div className="actions rail-actions"><button onClick={() => createProject().catch((err) => setError(String(err)))}>Create Project</button><button disabled={!selectedProjectId} onClick={() => createScenario().catch((err) => setError(String(err)))}>Create Scenario</button></div>
-              {datasetRecord && <p className="muted">Schema {datasetRecord.schema_version} | {datasetRecord.is_valid ? 'valid' : 'needs review'}</p>}
+              <div className="rail-field"><label>{navCollapsed ? 'P' : 'Project'}</label><select value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)}><option value="">{navCollapsed ? 'Proj' : 'Select a project'}</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></div>
+              <div className="rail-field"><label>{navCollapsed ? 'S' : 'Scenario'}</label><select value={selectedScenarioId} onChange={(event) => setSelectedScenarioId(event.target.value)}><option value="">{navCollapsed ? 'Scen' : 'Select a scenario'}</option>{scenarios.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.name}</option>)}</select></div>
+              <div className="actions rail-actions"><button onClick={() => createProject().catch((err) => setError(String(err)))}>{navCollapsed ? 'New P' : 'Create Project'}</button><button disabled={!selectedProjectId} onClick={() => createScenario().catch((err) => setError(String(err)))}>{navCollapsed ? 'New S' : 'Create Scenario'}</button></div>
+              {!navCollapsed && datasetRecord && <p className="muted">Schema {datasetRecord.schema_version} | {datasetRecord.is_valid ? 'valid' : 'needs review'}</p>}
             </div>
           </div>
 
           <div className="card rail-card rail-compact-card">
-            <div className="section-heading compact"><div><p className="eyebrow dark">Configuration</p><h2>Run setup</h2></div></div>
+            <div className="section-heading compact"><div>{!navCollapsed && <p className="eyebrow dark">Configuration</p>}<h2>Run setup</h2></div></div>
             <div className="form-grid rail-form">
-              <label>Run name<input value={runName} onChange={(event) => setRunName(event.target.value)} /></label>
-              <label>Iterations<input type="number" min={1} max={1000000} value={iterations} onChange={(event) => setIterations(Number(event.target.value))} /></label>
-              <label>Random seed<input type="number" value={randomSeed} onChange={(event) => setRandomSeed(Number(event.target.value))} /></label>
-              <label>Target duration days<input type="number" value={targetDuration} onChange={(event) => setTargetDuration(Number(event.target.value))} /></label>
-              <label>Target budget<input type="number" value={targetBudget} onChange={(event) => setTargetBudget(Number(event.target.value))} /></label>
-              <label>Calendar mode<select value={calendarMode} onChange={(event) => setCalendarMode(event.target.value)}><option value="simple_days">Simple days</option><option value="calendar_aware">Calendar-aware elapsed days</option></select></label>
-              <label className="checkbox-label"><input type="checkbox" checked={includeCorrelations} onChange={(event) => setIncludeCorrelations(event.target.checked)} /> Include correlations</label>
+              <label>{navCollapsed ? 'Name' : 'Run name'}<input value={runName} onChange={(event) => setRunName(event.target.value)} /></label>
+              <label>{navCollapsed ? 'Iter' : 'Iterations'}<input type="number" min={1} max={1000000} value={iterations} onChange={(event) => setIterations(Number(event.target.value))} /></label>
+              <label>{navCollapsed ? 'Seed' : 'Random seed'}<input type="number" value={randomSeed} onChange={(event) => setRandomSeed(Number(event.target.value))} /></label>
+              <label>{navCollapsed ? 'Dur' : 'Target duration days'}<input type="number" value={targetDuration} onChange={(event) => setTargetDuration(Number(event.target.value))} /></label>
+              <label>{navCollapsed ? 'Cost' : 'Target budget'}<input type="number" value={targetBudget} onChange={(event) => setTargetBudget(Number(event.target.value))} /></label>
+              <label>{navCollapsed ? 'Cal' : 'Calendar mode'}<select value={calendarMode} onChange={(event) => setCalendarMode(event.target.value)}><option value="simple_days">Simple days</option><option value="calendar_aware">Calendar-aware elapsed days</option></select></label>
+              <label className="checkbox-label"><input type="checkbox" checked={includeCorrelations} onChange={(event) => setIncludeCorrelations(event.target.checked)} /> {navCollapsed ? 'Corr' : 'Include correlations'}</label>
             </div>
             <div className="toolbar rail-toolbar">
-              <button disabled={!dataset} onClick={() => saveDataset().catch((err) => setError(String(err)))}>Validate and Save</button>
-              <button disabled={!dataset} onClick={() => runValidation().catch((err) => setError(String(err)))}>Run Validation</button>
-              <button disabled={!selectedScenarioId} className="secondary" onClick={resetStarterData}>Load Starter Dataset</button>
-              <button disabled={!dataset || simulationBusy} onClick={() => runSimulation().catch((err) => setError(String(err)))}>{simulationBusy ? 'Running...' : 'Run SCURA Simulation'}</button>
+              <button disabled={!dataset} onClick={() => saveDataset().catch((err) => setError(String(err)))}>{navCollapsed ? 'Save' : 'Validate and Save'}</button>
+              <button disabled={!dataset} onClick={() => runValidation().catch((err) => setError(String(err)))}>{navCollapsed ? 'Check' : 'Run Validation'}</button>
+              <button disabled={!selectedScenarioId} className="secondary" onClick={resetStarterData}>{navCollapsed ? 'Reset' : 'Load Starter Dataset'}</button>
+              <button disabled={!dataset || simulationBusy} onClick={() => runSimulation().catch((err) => setError(String(err)))}>{simulationBusy ? '...' : (navCollapsed ? 'Run' : 'Run SCURA Simulation')}</button>
             </div>
-            {simulationRuns.length > 0 && <div className="run-list rail-run-list"><h3>Recent runs</h3>{simulationRuns.slice(0, 3).map((run) => <button key={run.id} className="link-button" onClick={() => { setWorkspacePanel('results'); openSimulationRun(run.id).catch((err) => setError(String(err))); }}>{run.run_name} | {run.status}</button>)}</div>}
+            {simulationRuns.length > 0 && <div className="run-list rail-run-list"><h3>{navCollapsed ? 'Runs' : 'Recent runs'}</h3>{simulationRuns.slice(0, 3).map((run) => <button key={run.id} className="link-button" onClick={() => { setWorkspacePanel('results'); openSimulationRun(run.id).catch((err) => setError(String(err))); }}>{navCollapsed ? run.status : `${run.run_name} | ${run.status}`}</button>)}</div>}
           </div>
 
           {selectedScenarioId && <ImportWizard compact scenarioId={selectedScenarioId} onDatasetImported={(importedDataset, record) => { setDataset(importedDataset); setDatasetRecord(record); setValidation(null); }} onError={setError} onMessage={setMessage} />}

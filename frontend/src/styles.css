@@ -76,7 +76,7 @@ select, input, textarea {
 .table-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .table-heading h3 { margin-bottom: 0.15rem; }
 .table-heading p { margin: 0; color: #66708a; }
-.table-scroll { overflow: auto; border: 1px solid #e4e9f4; border-radius: 14px; }
+.table-scroll { overflow: auto; border: 1px solid #223148; border-radius: 14px; background: #0f1827; }
 .editable-table { width: 100%; border-collapse: collapse; min-width: 900px; }
 .editable-table th {
   text-align: left;
@@ -185,9 +185,9 @@ select, input, textarea {
   display: grid;
   gap: 0.25rem;
   padding: 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #223148;
   border-radius: 0.7rem;
-  background: #f8fafc;
+  background: #101928;
 }
 
 .metric-grid span {
@@ -201,7 +201,7 @@ select, input, textarea {
 
 .compact-table th,
 .compact-table td {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #223148;
   padding: 0.45rem;
   text-align: left;
 }
@@ -219,9 +219,7 @@ select, input, textarea {
   align-items: center;
 }
 
-.eyebrow.dark {
-  color: #475569;
-}
+.eyebrow.dark { color: #8fa2bf; }
 
 .metric-grid.large {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -326,9 +324,9 @@ select, input, textarea {
 .compare-picker {
   margin-top: 1rem;
   padding: 0.75rem;
-  border: 1px solid #d7dde8;
+  border: 1px solid #223148;
   border-radius: 0.75rem;
-  background: #f8fafc;
+  background: #101928;
 }
 
 .checkbox-row {
@@ -354,7 +352,7 @@ select, input, textarea {
 }
 
 .audit-event {
-  border-top: 1px solid #e3e8f0;
+  border-top: 1px solid #223148;
   padding: 0.75rem 0;
 }
 
@@ -403,11 +401,21 @@ select, input, textarea {
   grid-template-columns: 330px minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
+  transition: grid-template-columns 180ms ease;
+}
+
+.dashboard-shell.nav-collapsed {
+  grid-template-columns: 180px minmax(0, 1fr);
 }
 
 .control-rail {
   display: grid;
   gap: 0.75rem;
+  transition: width 180ms ease;
+}
+
+.control-rail.collapsed {
+  width: 180px;
 }
 
 .rail-brand {
@@ -416,10 +424,28 @@ select, input, textarea {
   padding: 0.1rem 0.1rem 0;
 }
 
+.rail-brand-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .rail-brand h1 {
   margin: 0;
   font-size: 1.35rem;
   line-height: 1;
+}
+
+.nav-toggle {
+  min-width: 34px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  background: #111a29;
+  border: 1px solid #263751;
+  color: #dbe8ff;
 }
 
 .rail-card {
@@ -506,16 +532,20 @@ select, input, textarea {
 
 .rail-actions {
   justify-content: stretch;
+  gap: 0.45rem;
 }
 
 .rail-actions button,
 .rail-toolbar button {
   flex: 1 1 100%;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.83rem;
 }
 
 .rail-form {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
+  margin-bottom: 0.75rem;
 }
 
 .rail-toolbar {
@@ -535,10 +565,11 @@ select, input, textarea {
 .rail-panel-nav button {
   text-align: left;
   border-radius: 12px;
-  padding: 0.6rem 0.75rem;
+  padding: 0.5rem 0.7rem;
   background: #111a29;
   border: 1px solid #263751;
   color: #c9d7ec;
+  font-size: 0.82rem;
 }
 
 .rail-panel-nav button.active {
@@ -583,6 +614,10 @@ select, input, textarea {
   gap: 1rem;
 }
 
+.workspace-main {
+  min-width: 0;
+}
+
 .empty-zone {
   min-height: 180px;
   display: grid;
@@ -620,6 +655,11 @@ select, input, textarea {
   padding: 0.8rem;
 }
 
+.compact-import-wizard h2,
+.compact-import-wizard h3 {
+  font-size: 1rem;
+}
+
 .compact-import-wizard .table-heading h2 {
   font-size: 1rem;
 }
@@ -639,6 +679,33 @@ select, input, textarea {
 
 .compact-import-wizard .sheet-counts {
   margin: 0.5rem 0;
+}
+
+.control-rail.collapsed .rail-card,
+.control-rail.collapsed .compact-import-wizard {
+  padding: 0.7rem;
+}
+
+.control-rail.collapsed .rail-form {
+  grid-template-columns: 1fr;
+}
+
+.control-rail.collapsed .compact-status-list,
+.control-rail.collapsed .compact-mini-metric-grid {
+  grid-template-columns: 1fr;
+}
+
+.control-rail.collapsed .rail-actions,
+.control-rail.collapsed .rail-toolbar,
+.control-rail.collapsed .import-controls {
+  gap: 0.35rem;
+}
+
+.control-rail.collapsed .rail-actions button,
+.control-rail.collapsed .rail-toolbar button,
+.control-rail.collapsed .rail-panel-nav button {
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
 }
 
 @media (max-width: 1100px) {
@@ -662,7 +729,7 @@ select, input, textarea {
 }
 
 .schedule-stack-card {
-  background: linear-gradient(135deg, #f7f9ff, #edf4ff);
+  background: linear-gradient(135deg, #101928, #142338);
 }
 
 .schedule-flow {
@@ -677,13 +744,13 @@ select, input, textarea {
   gap: 0.2rem;
   padding: 1rem;
   border-radius: 18px;
-  border: 1px solid #d7e3fb;
-  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid #263751;
+  background: rgba(17, 26, 41, 0.95);
   min-height: 96px;
 }
 
 .flow-step span {
-  color: #5b6880;
+  color: #8fa2bf;
 }
 
 .accent-step {
@@ -699,7 +766,7 @@ select, input, textarea {
 .flow-arrow {
   display: grid;
   place-items: center;
-  color: #5b6880;
+  color: #8fa2bf;
   font-size: 1.5rem;
   font-weight: 800;
 }
@@ -733,11 +800,11 @@ select, input, textarea {
 
 .schedule-canvas {
   overflow: auto;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #223148;
   border-radius: 16px;
   background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 30%),
-    linear-gradient(180deg, #fcfdff, #f5f8fe);
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.1), transparent 30%),
+    linear-gradient(180deg, #0f1827, #0c1420);
 }
 
 .network-svg,
@@ -759,20 +826,20 @@ select, input, textarea {
 .network-edge-label,
 .gantt-tick,
 .gantt-meta {
-  fill: #5b6880;
+  fill: #8fa2bf;
   font-size: 11px;
   font-weight: 700;
 }
 
 .network-node {
-  fill: white;
-  stroke: #cfddf5;
+  fill: #111a29;
+  stroke: #2b3b55;
   stroke-width: 1.2;
-  filter: drop-shadow(0 10px 18px rgba(35, 59, 110, 0.08));
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.18));
 }
 
 .network-node-id {
-  fill: #1c3361;
+  fill: #8fb6ff;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -780,7 +847,7 @@ select, input, textarea {
 }
 
 .network-node-label {
-  fill: #172033;
+  fill: #e6edf7;
   font-size: 13px;
   font-weight: 700;
 }
@@ -796,9 +863,9 @@ select, input, textarea {
   gap: 0.75rem;
   align-items: center;
   padding: 0.8rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #223148;
   border-radius: 16px;
-  background: #f8fbff;
+  background: #101928;
 }
 
 .logic-pill-group {
@@ -810,15 +877,15 @@ select, input, textarea {
 .logic-pill {
   padding: 0.35rem 0.6rem;
   border-radius: 999px;
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #162844;
+  color: #9bc0ff;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .secondary-pill {
-  background: #e2f5ea;
-  color: #166534;
+  background: #13302a;
+  color: #8be0c3;
 }
 
 .logic-gate {
@@ -839,11 +906,11 @@ select, input, textarea {
 }
 
 .logic-target span {
-  color: #607089;
+  color: #8fa2bf;
 }
 
 .correlation-row {
-  background: #f5fbf7;
+  background: #0f1d1d;
 }
 
 .fsm-node {
@@ -851,34 +918,34 @@ select, input, textarea {
 }
 
 .state-not-started {
-  fill: #eef4ff;
-  stroke: #bfd4ff;
+  fill: #132238;
+  stroke: #3f5f8f;
 }
 
 .state-in-progress {
-  fill: #fff6dd;
-  stroke: #f2c86f;
+  fill: #2a2414;
+  stroke: #a9883c;
 }
 
 .state-complete {
-  fill: #e7f8ed;
-  stroke: #92d3aa;
+  fill: #11271f;
+  stroke: #4e9870;
 }
 
 .fsm-node-title {
-  fill: #19253d;
+  fill: #e6edf7;
   font-size: 17px;
   font-weight: 800;
 }
 
 .fsm-node-value {
-  fill: #17324d;
+  fill: #b7d0ff;
   font-size: 22px;
   font-weight: 800;
 }
 
 .fsm-node-copy {
-  fill: #5b6880;
+  fill: #8fa2bf;
   font-size: 12px;
 }
 
@@ -887,12 +954,12 @@ select, input, textarea {
 }
 
 .gantt-grid-line {
-  stroke: #d9e2f1;
+  stroke: #2f425d;
   stroke-width: 1;
 }
 
 .gantt-label-id {
-  fill: #17324d;
+  fill: #b7d0ff;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -900,7 +967,7 @@ select, input, textarea {
 }
 
 .gantt-label-name {
-  fill: #5b6880;
+  fill: #8fa2bf;
   font-size: 12px;
 }
 
